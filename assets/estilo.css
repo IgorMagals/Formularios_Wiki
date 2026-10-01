@@ -1,0 +1,646 @@
+/* ------------------------------------------------------------------ *
+ * Tokens. Cor, medida e tipografia num lugar só — mexer aqui muda a
+ * página inteira, e não há valor de cor solto no meio do documento.
+ * ------------------------------------------------------------------ */
+:root {
+  --azul: #1f4396;
+  --azul-escuro: #18357a;
+  --azul-claro: #eaf0fa;
+  --teal: #0f6e7c;
+  --teal-claro: #e6f1f3;
+  --texto: #14233a;
+  --texto-medio: #4a5767;
+  --texto-fraco: #5b6878;
+  --fundo: #eef1f5;
+  --cartao: #fff;
+  --cinza-claro: #f4f6f9;
+  --borda: #dbe1e8;
+  --borda-campo: #cdd5df;
+  --verde: #1f9a6a;
+  --verde-fundo: #f3faf6;
+  --verde-borda: #9fd6bd;
+  --vermelho: #c0392b;
+  --alerta: #a4461b;
+  --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cond: 'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --raio: 14px;
+  --raio-g: 18px;
+  --toque: 44px;   /* alvo mínimo de toque */
+  /* Espaçamento: entre caixas, dentro da caixa, entre itens pequenos.
+     Nenhuma distância entre blocos é escrita solta — muda aqui, muda tudo. */
+  --espaco: 16px;
+  --espaco-m: 12px;
+  --espaco-p: 8px;
+}
+
+* { box-sizing: border-box; }
+/* Vem antes de tudo: o display de uma classe nossa nunca pode vencer o
+   hidden, senão a página escondida continua na tela. */
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 400 17px/1.5 var(--sans);
+}
+a { color: var(--azul); }
+h1, h2, h3 { margin: 0; }
+img { display: block; max-width: 100%; height: auto; }
+button { font-family: inherit; }
+
+/* Todo input tem largura intrínseca (~20 caracteres) que uma coluna de
+   grade respeita — e é assim que um formulário estoura a tela do
+   telefone sem ninguém ver. Aqui se permite encolher. */
+input, textarea, select { min-width: 0; }
+
+/* Se a fonte condensada não carregar (rede do cliente, modo offline), o
+   título cai numa fonte bem mais larga. Quebrar é melhor que vazar. */
+h1, .titulo, .titulo--grande { overflow-wrap: anywhere; }
+
+/* Some a seta do input numérico: o valor é digitado ou arrastado. */
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+:where(button, input, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Estrutura — mobile-first. As quebras em 640px e 900px só ACRESCENTAM
+ * colunas; o telefone é o estado natural do documento, não a exceção.
+ * ------------------------------------------------------------------ */
+.pagina {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--espaco) var(--espaco) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco);
+}
+/* O formulário é um invólucro só para esconder tudo antes do código: as
+   caixas dentro dele continuam sendo filhas da .pagina para o espaçamento. */
+.formulario { display: contents; }
+.folha { display: flex; flex-direction: column; gap: var(--espaco); }
+@media (min-width: 640px) {
+  .pagina { padding: 26px 20px 56px; }
+}
+
+.cartao {
+  background: var(--cartao);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-g);
+  padding: 20px;
+}
+@media (min-width: 640px) { .cartao { padding: 22px 26px; } }
+
+.secao { display: flex; flex-direction: column; gap: var(--espaco); }
+.campos-bloco { display: flex; flex-direction: column; gap: var(--espaco-m); }
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.cabecalho__texto { display: flex; flex-direction: column; gap: 8px; }
+.sobretitulo {
+  font: 600 13px var(--mono);
+  letter-spacing: .14em;
+  color: var(--teal);
+}
+.cabecalho h1 {
+  font: 700 clamp(30px, 9vw, 44px)/1.05 var(--cond);
+  color: var(--azul);
+}
+.cabecalho__linha2 { font: 500 clamp(18px, 5vw, 22px)/1.3 var(--sans); }
+.cabecalho p { margin: 0; color: var(--texto-medio); max-width: 60ch; }
+.cabecalho__logo { height: 84px; width: auto; align-self: flex-start; }
+@media (min-width: 640px) {
+  .cabecalho { flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; }
+  .cabecalho__texto { flex: 1; }
+  .cabecalho__logo { height: 110px; align-self: center; }
+}
+
+/* Regra geral das grades deste arquivo: NENHUM track pode passar da
+   largura do contêiner. Coluna "auto" adota a largura mínima do conteúdo
+   e vaza para fora do cartão sem rolar a tela — o campo simplesmente
+   atravessa a borda. Por isso todo track é minmax(0,1fr) no telefone e
+   minmax(min(100%,Xpx),1fr) quando pode haver mais de uma coluna. */
+
+/* Abas das quatro etapas: duas por linha no telefone, quatro no desktop */
+.abas { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (min-width: 900px) { .abas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.aba {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: var(--toque);
+  padding: 12px 16px;
+  border: 1.5px solid var(--azul);
+  border-radius: var(--raio);
+  background: var(--cartao);
+  color: var(--azul);
+  text-align: left;
+  cursor: pointer;
+}
+.aba[aria-current="true"] { background: var(--azul); color: #fff; }
+.aba__num { font: 700 24px var(--cond); }
+.aba__rot { display: flex; flex-direction: column; min-width: 0; }
+@media (max-width: 639px) {
+  .aba { gap: 10px; padding: 10px 12px; }
+  .aba__num { font-size: 20px; }
+  .aba__rot b { font-size: 15px; }
+  .aba__rot span { display: none; }
+}
+.aba__rot b { font: 600 16px var(--sans); }
+.aba__rot span { font: 400 13px var(--sans); }
+
+/* Títulos de bloco */
+.titulo { font: 700 clamp(22px, 6vw, 26px) var(--cond); letter-spacing: .02em; }
+.titulo--grande { font-size: clamp(23px, 6.5vw, 28px); line-height: 1.05; }
+.subtitulo { font: 400 15px var(--sans); color: var(--texto-medio); }
+/* Cabeçalho de bloco: título à esquerda, selo de unidade à direita.
+   SEM flex-wrap de propósito. Com wrap, o navegador decide quebrar a
+   linha ANTES de tentar encolher o título — o selo desce e cada bloco
+   ganha uma faixa inteira de altura à toa. Sem wrap, o título encolhe e
+   quebra em duas linhas, que é o comportamento certo aqui.
+   Onde o segundo elemento não é um selo estreito (contador de veículos,
+   par de botões), usa-se o modificador --quebra. */
+.cabecalho-bloco {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+.cabecalho-bloco > :first-child { flex: 1 1 auto; min-width: 0; }
+.cabecalho-bloco > :first-child + * { flex: 0 0 auto; }
+.cabecalho-bloco--quebra { flex-wrap: wrap; }
+.numero-bloco { font: 600 13px var(--mono); letter-spacing: .12em; color: var(--texto-fraco); }
+.unidade {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 6px 16px 8px; border-radius: 12px;
+  background: var(--azul); color: #fff; flex-shrink: 0;
+}
+.unidade small { font: 500 11px var(--mono); letter-spacing: .18em; color: #c7d4ee; }
+.unidade b { font: 700 clamp(26px, 7vw, 34px)/1 var(--cond); }
+.icone-bloco {
+  width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0;
+  background: var(--teal-claro); color: var(--teal);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Campos */
+.grade-campos { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .grade-campos { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); } }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo > span:first-child { font: 600 16px var(--sans); }
+.campo input[type=text],
+.campo input[type=email],
+.entrada {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid var(--borda-campo);
+  border-radius: 10px;
+  padding: 0 14px;
+  font: 400 16px var(--sans);
+  color: var(--texto);
+  background: var(--cartao);
+}
+.campo input:focus, .entrada:focus { border-color: var(--azul); }
+.dica { font: 400 14px var(--sans); color: var(--texto-fraco); }
+.dica--alerta { color: var(--alerta); }
+.dica--erro { color: var(--vermelho); font-weight: 600; }
+.opcional {
+  font: 400 12px var(--mono); font-style: normal; letter-spacing: .06em;
+  color: var(--texto-fraco); background: var(--cinza-claro);
+  padding: 2px 7px; border-radius: 5px; margin-left: 6px;
+}
+
+/* Lista de modelos: mesmo corpo dos campos de texto, com a seta própria
+   do sistema — trocar a seta por desenho nosso não ganha nada aqui. */
+select.entrada { cursor: pointer; padding-right: 10px; }
+
+/* De onde vieram as faixas. Fica acima da barra porque é a primeira
+   pergunta de quem olha para ela: "esses números saíram de onde?" */
+.origem-faixas {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--cinza-claro);
+  font: 400 14px/1.4 var(--sans);
+  color: var(--texto-medio);
+}
+.origem-faixas b { color: var(--teal); font-weight: 600; }
+
+/* --- Conjuntos de veículos -------------------------------------------- */
+.conjuntos { border-left: 3px solid var(--teal); }
+.fichas { display: flex; flex-wrap: wrap; gap: 8px; }
+.ficha {
+  display: flex; align-items: stretch;
+  border: 1.5px solid var(--borda-campo);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--cartao);
+}
+.ficha--ativa { border-color: var(--azul); background: var(--azul); }
+.ficha__nome {
+  min-height: var(--toque);
+  padding: 0 14px;
+  border: 0; background: none; cursor: pointer;
+  font: 600 15px var(--sans); color: var(--azul);
+  max-width: 60vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ficha--ativa .ficha__nome { color: #fff; }
+.ficha__tira {
+  width: 38px; border: 0; cursor: pointer;
+  background: none; color: var(--texto-fraco);
+  font-size: 20px; line-height: 1;
+  border-left: 1.5px solid var(--borda-campo);
+}
+.ficha--ativa .ficha__tira { color: #c7d4ee; border-left-color: rgba(255,255,255,.35); }
+.ficha__tira:hover { color: var(--vermelho); background: #fdf1ec; }
+.ficha--ativa .ficha__tira:hover { color: #fff; background: rgba(255,255,255,.18); }
+
+/* Qual conjunto está sendo editado. Presa no topo enquanto se rola. */
+.editando {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  min-height: var(--toque); padding: 8px 14px;
+  border: 0; border-radius: 10px;
+  background: var(--azul); color: #fff;
+  font: 400 14px var(--sans); text-align: left; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(20, 35, 58, .18);
+}
+.editando b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editando span { flex: 0 0 auto; opacity: .8; font-size: 13px; }
+.editando span:last-child { margin-left: auto; }
+
+/* Sinal de troca: o conteúdo pisca ao mudar de conjunto, senão parece
+   que nada aconteceu — a página de baixo tem a mesma cara. */
+@keyframes trocou { from { opacity: .25; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes chegou { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } 100% { transform: none; } }
+.trocou { animation: trocou .3s ease-out; }
+.ficha--nova { animation: chegou .35s ease-out; }
+
+/* Resposta ao toque: o botão afunda enquanto é pressionado. */
+.btn:active, .btn-adicionar:active, .ficha__nome:active, .ficha__tira:active,
+.aba:active, .editando:active, .cambio button:active { transform: scale(.96); }
+.btn, .btn-adicionar, .ficha, .aba, .editando, .cambio button { transition: transform .08s, background-color .15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .trocou, .ficha--nova { animation: none; }
+}
+
+/* Campo fora do intervalo permitido. A borda vermelha sozinha não
+   comunica a quem não enxerga cor — por isso vem sempre acompanhada da
+   mensagem em .dica--erro, que o leitor de tela anuncia. */
+.campo--erro .medida,
+.campo--erro input { border-color: var(--vermelho); }
+.campo--erro .medida input { border-color: transparent; }
+
+/* Marca de valor alterado pelo cliente: o que ele mexeu de propósito
+   precisa se distinguir do que ficou como veio. */
+.marca-alterado {
+  font: 600 11px var(--mono); letter-spacing: .08em;
+  color: var(--teal); background: var(--teal-claro);
+  padding: 2px 7px; border-radius: 5px; margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* Campo-armadilha: fora da tela, nunca visível, nunca focável por
+   tabulação. display:none não serve — robô que lê o CSS pula o campo. */
+.armadilha {
+  position: absolute;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+
+
+/* Campo numérico com sufixo de unidade */
+.medida {
+  display: flex;
+  height: 46px;
+  border: 1.5px solid var(--borda-campo);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--cartao);
+}
+.medida input {
+  flex: 1; min-width: 0; border: 0; outline: none; background: transparent;
+  padding: 0 14px; font: 500 18px var(--mono); color: var(--texto);
+}
+.medida__unidade {
+  display: flex; align-items: center; padding: 0 14px;
+  background: #eef2f7; border-left: 1.5px solid var(--borda-campo);
+  font: 600 14px var(--mono); color: var(--azul);
+}
+.medida[data-desligado="1"] { background: #f1f3f6; }
+.medida[data-desligado="1"] input { color: var(--texto-fraco); }
+
+textarea {
+  width: 100%;
+  border: 1.5px solid var(--borda-campo);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font: 400 17px/1.5 var(--sans);
+  color: var(--texto);
+  resize: vertical;
+}
+
+/* Botões */
+.btn {
+  min-height: var(--toque);
+  height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--azul);
+  color: #fff;
+  font: 600 17px var(--sans);
+  cursor: pointer;
+}
+.btn:hover { background: var(--azul-escuro); }
+.btn--fantasma { background: var(--cartao); color: var(--azul); border: 1.5px solid var(--azul); }
+.btn--fantasma:hover { background: var(--azul-claro); }
+.btn--pequeno { height: 40px; padding: 0 14px; font-size: 14px; border-radius: 8px;
+  background: var(--cartao); color: var(--azul); border: 1.5px solid var(--borda-campo); }
+.btn[disabled] { opacity: .6; cursor: default; }
+.rodape-nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+.rodape-nav--fim { justify-content: flex-end; }
+.rodape-nav .btn { flex: 1 1 auto; }
+@media (min-width: 560px) { .rodape-nav .btn { flex: 0 0 auto; } }
+
+/* --- Veículos: cartão empilhado no telefone, linha no desktop --------- */
+/* --- Frota: uma linha por placa ------------------------------------- */
+.acoes-frota { display: flex; gap: 8px; flex-wrap: wrap; }
+.placas { display: flex; flex-direction: column; gap: 8px; }
+.placa-linha {
+  display: grid; gap: 8px 12px; align-items: center;
+  /* No telefone: placa e grupo em cima, câmbio embaixo com a largura toda —
+     lado a lado, "Automático" não cabe a 360px. */
+  grid-template-columns: minmax(0, 1fr) 128px;
+  grid-template-areas: "id grupo" "cambio cambio";
+  padding: 10px 12px;
+  border: 1px solid var(--borda); border-radius: 12px; background: var(--cinza-claro);
+}
+.placa-linha--pendente { border-color: #e9b48f; background: #fdf6f1; }
+.placa-linha__id { grid-area: id; display: flex; flex-direction: column; min-width: 0; }
+.placa-linha__id b { font: 600 17px var(--mono); color: var(--texto); }
+.placa-linha__id span { font: 400 13px var(--sans); color: var(--texto-fraco); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.placa-linha .cambio { grid-area: cambio; height: 42px; }
+.placa-linha .cambio button { padding: 0 8px; font-size: 14px; }
+.placa-linha__grupo { grid-area: grupo; height: 42px; min-width: 0; }
+@media (min-width: 720px) {
+  .placa-linha {
+    grid-template-columns: minmax(0, 1fr) 220px 200px;
+    grid-template-areas: "id cambio grupo";
+  }
+}
+.contador--alerta { color: var(--alerta); background: #fdf1ec; }
+.resumo-grupos { display: flex; flex-direction: column; gap: 4px; }
+.resumo-grupos__linha { display: flex; justify-content: space-between; gap: 12px; font: 400 14px var(--sans); color: var(--texto-medio); }
+.resumo-grupos__linha b { color: var(--texto); font-weight: 600; }
+.placas-do-grupo { margin: 0; font: 500 14px/1.5 var(--mono); color: var(--texto-medio); overflow-wrap: anywhere; }
+.entrada--fixa { display: flex; align-items: center; height: auto; min-height: 46px; padding: var(--espaco-p) 14px;
+  background: var(--cinza-claro); font: 500 15px/1.3 var(--sans); }
+
+/* --- Acesso ----------------------------------------------------------- */
+.acesso__linha { display: flex; gap: 10px; flex-wrap: wrap; }
+.acesso__codigo { flex: 1 1 200px; min-width: 0; font: 600 20px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+/* --- Ranking ---------------------------------------------------------- */
+.explica-regra { display: flex; flex-direction: column; gap: 8px; font: 400 16px/1.5 var(--sans); color: var(--texto-medio); }
+.explica-regra p { margin: 0; }
+.explica-regra b { color: var(--texto); }
+.explica-regra__exemplo { padding: 10px 14px; border-radius: 10px; background: var(--azul-claro); color: var(--azul); }
+.regras__bloco { display: flex; flex-direction: column; gap: var(--espaco-p); }
+.regras__grupo { font: 600 13px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--teal); }
+.regra { display: flex; flex-direction: column; gap: 8px; }
+.regra--ligada .regra__liga { border-color: var(--azul); }
+.regra__valores { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 4px; font: 400 15px var(--sans); color: var(--texto-medio); }
+.regra__numero { width: 56px; height: 40px; padding: 0 8px; text-align: center; font: 600 16px var(--mono); }
+.regra .dica { margin: 0; }
+
+.cambio { display: flex; border: 1.5px solid var(--borda-campo); border-radius: 10px; overflow: hidden; height: 46px; }
+.cambio button {
+  flex: 1; border: 0; padding: 0 14px; cursor: pointer;
+  background: var(--cartao); color: var(--texto-medio);
+  font: 500 15px var(--sans); white-space: nowrap;
+}
+.cambio button[aria-pressed="true"] { background: var(--azul); color: #fff; }
+.contador {
+  font: 600 15px var(--mono); color: var(--azul);
+  background: var(--azul-claro); padding: 8px 14px; border-radius: 8px; white-space: nowrap;
+}
+.btn-adicionar {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: var(--toque); padding: 0 18px;
+  border-radius: 10px; border: 1.5px dashed var(--azul);
+  background: #f5f8fd; color: var(--azul);
+  font: 600 16px var(--sans); cursor: pointer;
+}
+.btn-adicionar:hover { background: var(--azul-claro); }
+
+/* --- Barra de faixas de RPM ------------------------------------------- */
+.barra {
+  position: relative;
+  height: 56px;
+  border-radius: 12px;
+  background: #e9edf2;
+  touch-action: none;          /* o arrasto é nosso, não do scroll */
+  overflow: visible;
+}
+.barra__faixa { position: absolute; top: 0; bottom: 0; }
+
+/* No telefone as seis alças ficam a ~16px uma da outra (4000 RPM em
+   ~330px). Com o alvo de 44px do desktop elas viram um bloco branco
+   sobreposto e escondem as faixas coloridas. Aqui o alvo encolhe para
+   30px e o pino para 8px — quem precisa de precisão usa os campos
+   numéricos logo abaixo. */
+.barra__alca {
+  position: absolute;
+  top: -10px; bottom: -10px;
+  width: 30px;
+  margin-left: -15px;
+  cursor: ew-resize;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+  background: none; border: 0; padding: 0;
+}
+.barra__alca::before {
+  content: "";
+  width: 8px; height: 100%;
+  border-radius: 5px;
+  background: var(--cartao);
+  border: 2px solid var(--azul);
+  box-shadow: 0 1px 4px rgba(20, 35, 58, .25);
+}
+@media (min-width: 640px) {
+  .barra__alca { width: var(--toque); margin-left: calc(var(--toque) / -2); }
+  .barra__alca::before { width: 14px; border-radius: 7px; }
+}
+.barra__alca[data-arrastando="1"]::before { background: var(--azul); }
+.marcas { position: relative; height: 20px; }
+.marcas span {
+  position: absolute; transform: translateX(-50%);
+  font: 500 12px var(--mono); color: var(--texto-fraco);
+}
+.faixas { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .faixas { grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); } }
+/* No telefone a linha da faixa vira duas: o nome ocupa a largura toda e
+   os dois limites vêm embaixo. Numa linha só, "Amarela" e "Vermelha"
+   sobram da coluna e são cobertos pelo campo seguinte — texto cortado no
+   meio, sem aviso nenhum. */
+.faixa {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 10px minmax(0, 1fr);
+  grid-template-areas:
+    "cor nome nome nome"
+    "cor ini  tra  fim";
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--cinza-claro);
+}
+.faixa__cor { grid-area: cor; width: 14px; height: 100%; min-height: 34px; border-radius: 4px; align-self: stretch; }
+.faixa__ini { grid-area: ini; }
+.faixa__tra { grid-area: tra; }
+.faixa__fim { grid-area: fim; }
+@media (min-width: 640px) {
+  .faixa {
+    grid-template-columns: 14px minmax(0, 1fr) 80px 10px 80px;
+    grid-template-areas: "cor nome ini tra fim";
+  }
+  .faixa__cor { height: 34px; align-self: center; }
+}
+.faixa__nome { grid-area: nome; display: flex; flex-direction: column; min-width: 0; }
+.faixa__nome b { font: 600 16px var(--sans); }
+.faixa__nome span { font: 400 12px var(--sans); color: var(--texto-medio); }
+.faixa input {
+  height: 40px; width: 100%; min-width: 0;
+  border: 1.5px solid var(--borda-campo); border-radius: 8px;
+  padding: 0 8px; text-align: center;
+  font: 500 16px var(--mono); color: var(--texto); background: var(--cartao);
+}
+.faixa input:disabled { background: #e7ebf0; color: var(--texto-fraco); }
+.faixa__tra { text-align: center; color: var(--texto-fraco); }
+.nota-italico { font: italic 400 15px/1.45 var(--sans); color: var(--texto-medio); }
+.caixa-fixa {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px 16px; border-radius: 10px; background: var(--cinza-claro);
+}
+.etiqueta {
+  font: 600 12px var(--mono); letter-spacing: .08em; color: var(--texto-medio);
+  background: #e3e9f1; padding: 3px 8px; border-radius: 6px;
+}
+
+/* --- Blocos da página 2 ----------------------------------------------- */
+.blocos { display: grid; gap: var(--espaco); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .blocos { grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); } }
+/* --- Alertas sonoros -------------------------------------------------- */
+.alertas { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .alertas { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); } }
+.alerta {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  min-height: 60px; padding: 10px 16px;
+  border: 1.5px solid var(--borda); border-radius: 12px;
+  background: var(--cartao); cursor: pointer; text-align: left;
+}
+.alerta[aria-checked="true"] { background: var(--verde-fundo); border-color: var(--verde-borda); }
+.alerta__rot { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.alerta__rot b { font: 600 16px var(--sans); color: var(--texto); }
+.alerta__rot span { font: 400 13px var(--sans); color: var(--texto-medio); }
+.chave { width: 52px; height: 30px; border-radius: 15px; background: #c3ccd7; position: relative; flex-shrink: 0; }
+.chave::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(20, 35, 58, .3);
+  transition: left .12s ease;
+}
+.alerta[aria-checked="true"] .chave { background: var(--verde); }
+.alerta[aria-checked="true"] .chave::after { left: 25px; }
+
+/* --- Modal do resumo -------------------------------------------------- */
+.modal {
+  position: fixed; inset: 0; z-index: 10;
+  background: rgba(20, 35, 58, .55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px;
+}
+.modal[hidden] { display: none; }
+.modal__caixa {
+  background: var(--cartao); border-radius: var(--raio-g);
+  width: 100%; max-width: 720px; max-height: 92vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal__topo, .modal__pe {
+  padding: 16px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+}
+.modal__topo { border-bottom: 1px solid #e6eaef; justify-content: space-between; }
+.modal__topo b { font: 700 clamp(21px, 5.5vw, 26px) var(--cond); color: var(--azul); }
+.modal__corpo { padding: 16px 20px; overflow: auto; display: flex; flex-direction: column; gap: 16px; }
+.modal__pe { border-top: 1px solid #e6eaef; justify-content: flex-end; }
+.modal__pe .btn { flex: 1 1 auto; }
+@media (min-width: 560px) {
+  .modal__topo, .modal__corpo, .modal__pe { padding-left: 28px; padding-right: 28px; }
+  .modal__pe .btn { flex: 0 0 auto; }
+}
+.fechar {
+  width: var(--toque); height: var(--toque); border-radius: 10px;
+  border: 1.5px solid var(--borda); background: var(--cartao);
+  color: var(--texto-fraco); font-size: 22px; cursor: pointer; flex-shrink: 0;
+}
+/* Lista do que falta antes de enviar. Fica no topo do resumo porque o
+   cliente precisa ver o motivo ANTES de procurar o botão que não
+   responde — botão desabilitado sem explicação é o que gera ligação. */
+.pendencias {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fdf1ec;
+  border-left: 3px solid var(--vermelho);
+}
+.pendencias b { display: block; font: 600 16px var(--sans); color: var(--vermelho); margin-bottom: 6px; }
+.pendencias ul { margin: 0; padding-left: 20px; }
+.pendencias li { font: 400 15px/1.5 var(--sans); color: var(--texto); }
+
+/* Placar do que saiu do padrão. */
+.placar {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--teal-claro);
+  border-left: 3px solid var(--teal);
+  font: 600 15px var(--sans);
+  color: var(--teal);
+}
+.placar--vazio {
+  background: var(--cinza-claro);
+  border-left-color: var(--borda-campo);
+  color: var(--texto-medio);
+  font-weight: 400;
+}
+
+.grupo-resumo { display: flex; flex-direction: column; gap: 6px; }
+.linha-resumo--alterado { background: #f2fbf8; }
+.linha-resumo--alterado span:last-child { color: var(--teal); font-weight: 600; }
+.grupo-resumo > b { font: 600 13px var(--mono); letter-spacing: .12em; color: var(--teal); }
+.linha-resumo {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 6px 0; border-bottom: 1px solid #eef1f5;
+  font: 400 16px var(--sans);
+}
+.linha-resumo span:last-child { font: 500 15px var(--mono); color: var(--texto-medio); text-align: right; }
+.estado { flex: 1 1 100%; font: 400 15px/1.4 var(--sans); color: var(--alerta); }
+.estado[data-ok="1"] { color: #1f7a4f; }
+@media (min-width: 560px) { .estado { flex: 1 1 200px; } }
+
+@media print {
+  [data-noprint] { display: none !important; }
+  body { background: #fff; }
+  .cartao { border-color: #ccc; break-inside: avoid; }
+}

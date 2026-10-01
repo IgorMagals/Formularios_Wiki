@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f4396">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Formulário de configuração da telemetria CORPVS.">
+<title>CORPVS Telemetria — Formulário de Configuração</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+
+<div class="pagina">
+
+  <header class="cartao cabecalho">
+    <div class="cabecalho__texto">
+      <div class="sobretitulo">FORMULÁRIO DE CONFIGURAÇÃO</div>
+      <h1>CORPVS TELEMETRIA</h1>
+      <div class="cabecalho__linha2" id="tituloCliente">Configuração da sua frota</div>
+      <p>Os campos já vêm com os valores padrão — altere só o que quiser. Suas respostas ficam salvas neste navegador enquanto você preenche.</p>
+    </div>
+    <img class="cabecalho__logo" src="assets/logo.png" alt="CORPVS" width="1766" height="1713">
+  </header>
+
+  <!-- ================= ACESSO ================= -->
+  <section class="cartao secao acesso" id="telaAcesso">
+    <div class="titulo">CÓDIGO DE ACESSO</div>
+    <p class="subtitulo">Digite o código que a CORPVS enviou para o seu e-mail. Ele vale por 24 horas e abre
+      a configuração da sua frota.</p>
+    <form class="acesso__linha" id="formAcesso">
+      <input class="entrada acesso__codigo" type="text" id="codigo" placeholder="XXXX-XXXX"
+             autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="12"
+             aria-label="Código de acesso">
+      <button class="btn" type="submit" id="abrir">Abrir</button>
+    </form>
+    <p class="dica" id="estadoAcesso" aria-live="polite"></p>
+  </section>
+
+  <div id="formulario" class="formulario" hidden>
+
+  <nav class="abas" data-noprint>
+    <button class="aba" type="button" data-ir="1" aria-current="true">
+      <span class="aba__num">1</span>
+      <span class="aba__rot"><b>Frota e grupos</b><span>Câmbio · grupos</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="2" aria-current="false">
+      <span class="aba__num">2</span>
+      <span class="aba__rot"><b>Motor</b><span>Faixas de rotação</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="3" aria-current="false">
+      <span class="aba__num">3</span>
+      <span class="aba__rot"><b>Condução e alertas</b><span>Velocidade · condução · áudios</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="4" aria-current="false">
+      <span class="aba__num">4</span>
+      <span class="aba__rot"><b>Ranking</b><span>Regras de pontuação</span></span>
+    </button>
+  </nav>
+
+  <!-- Aparece nas etapas 2 e 3: é o grupo em edição. -->
+  <section class="cartao secao conjuntos" id="cartaoGrupo">
+    <div class="cabecalho-bloco cabecalho-bloco--quebra">
+      <div>
+        <div class="titulo">GRUPO EM CONFIGURAÇÃO</div>
+        <div class="subtitulo">Tudo o que você ajustar abaixo vale para as placas deste grupo.
+          Para criar grupo ou mudar placa de grupo, volte à etapa 1.</div>
+      </div>
+      <button class="btn-adicionar" type="button" id="duplicarGrupo">Duplicar grupo</button>
+    </div>
+    <div class="fichas" id="fichasGrupos" role="tablist" aria-label="Grupos"></div>
+    <p class="placas-do-grupo" id="placasDoGrupo"></p>
+    <div class="grade-campos">
+      <label class="campo">
+        <span>Nome deste grupo</span>
+        <input type="text" id="nomeGrupo" autocomplete="off">
+        <span class="dica">Ex.: <em>Delivery urbano</em>, <em>Carretas</em>. É por este nome que a CORPVS
+          identifica cada configuração.</span>
+      </label>
+      <label class="campo">
+        <span>Modelo do veículo</span>
+        <select id="modeloGrupo" class="entrada"></select>
+        <span class="dica">Escolhendo o modelo, as faixas de rotação já vêm da ficha técnica do
+          fabricante. Dá para ajustar depois.</span>
+      </label>
+    </div>
+  </section>
+
+  <!-- Presa no topo da tela: rolando lá para baixo, o cliente continua
+       sabendo qual grupo está editando. -->
+  <button class="editando" type="button" id="editando" hidden aria-live="polite"></button>
+
+  <!-- ================= ETAPA 1 — FROTA E GRUPOS ================= -->
+  <div id="pagina1" class="folha">
+
+    <section class="cartao secao">
+      <div class="titulo">IDENTIFICAÇÃO</div>
+      <div class="grade-campos">
+        <div class="campo">
+          <span>Empresa</span>
+          <div class="entrada entrada--fixa" id="nomeCliente"></div>
+        </div>
+        <label class="campo">
+          <span>Responsável</span>
+          <input type="text" id="responsavel" placeholder="Seu nome" autocomplete="name">
+        </label>
+        <label class="campo">
+          <span>E-mail</span>
+          <input type="email" id="email" placeholder="nome@empresa.com.br" autocomplete="email" required>
+          <span class="dica" id="dicaEmail"></span>
+        </label>
+      </div>
+
+      <!-- Campo-armadilha: fica fora da tela e sem foco por tabulação.
+           Pessoa nenhuma o preenche; robô de formulário preenche tudo.
+           Se vier com conteúdo, o envio é descartado do outro lado. -->
+      <div class="armadilha" aria-hidden="true">
+        <label>Não preencha este campo
+          <input type="text" id="armadilha" name="sobrenome_meio" tabindex="-1" autocomplete="off">
+        </label>
+      </div>
+    </section>
+
+    <section class="cartao secao">
+      <div class="cabecalho-bloco cabecalho-bloco--quebra">
+        <div>
+          <div class="titulo">FROTA</div>
+          <div class="subtitulo">Marque o câmbio de cada veículo. Placas no mesmo grupo recebem a mesma
+            configuração — um veículo diferente dos outros vai para um grupo só dele.</div>
+        </div>
+        <div class="contador" id="contadorPlacas">—</div>
+      </div>
+      <div class="acoes-frota" data-noprint>
+        <button class="btn btn--pequeno" type="button" id="todasManuais">Todas manuais</button>
+        <button class="btn btn--pequeno" type="button" id="todasAutomaticas">Todas automáticas</button>
+      </div>
+      <div class="placas" id="listaPlacas"></div>
+      <p class="dica">Automáticos não têm banguela, faixa azul, RPM abaixo do ideal nem excesso de embreagem.</p>
+      <div class="resumo-grupos" id="resumoGrupos"></div>
+    </section>
+
+    <div class="rodape-nav rodape-nav--fim" data-noprint>
+      <button class="btn" type="button" data-ir="2">Configurar grupos →</button>
+    </div>
+  </div>
+
+  <!-- ================= ETAPA 2 — MOTOR ================= -->
+  <div id="pagina2" class="folha" hidden>
+
+    <section class="cartao secao">
+      <div class="cabecalho-bloco">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="icone-bloco">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.5-5.5"/></svg>
+          </div>
+          <div>
+            <div class="numero-bloco">01</div>
+            <div class="titulo titulo--grande">ROTAÇÃO DO MOTOR</div>
+          </div>
+        </div>
+        <div class="unidade"><small>UNIDADE</small><b>RPM</b></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px">
+        <p class="origem-faixas" id="origemFaixas"></p>
+        <div class="barra" id="barra"></div>
+        <div class="marcas" id="marcas"></div>
+        <p class="nota-italico">Arraste os marcadores ou digite os valores abaixo — as faixas vizinhas se ajustam automaticamente. A azul (RPM abaixo do ideal) começa sempre na marcha lenta + 50 e é exclusiva de veículos manuais.</p>
+      </div>
+
+      <div class="faixas" id="listaFaixas"></div>
+
+      <div class="grade-campos" style="padding-top:16px;border-top:1px solid #e6eaef">
+        <div id="camposRpm"></div>
+        <div class="caixa-fixa">
+          <span style="display:flex;align-items:center;gap:10px;font:600 16px var(--sans)">Banguela <span class="etiqueta">FIXO</span></span>
+          <span style="font:400 15px/1.45 var(--sans);color:var(--texto-medio)">Exclusivo para veículos manuais. Detectado com rotação em marcha lenta + 50 e velocidade acima de 15 km/h. Não é ajustável pelo cliente.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="1">← Frota</button>
+      <button class="btn" type="button" data-ir="3">Condução e alertas →</button>
+    </div>
+  </div>
+
+  <!-- ================= ETAPA 3 — CONDUÇÃO E ALERTAS ================= -->
+  <div id="pagina3" class="folha" hidden>
+
+    <div class="blocos" id="blocos"></div>
+
+    <section class="cartao secao">
+      <div class="cabecalho-bloco cabecalho-bloco--quebra">
+        <div>
+          <div class="numero-bloco">04</div>
+          <div class="titulo titulo--grande">ALERTAS SONOROS</div>
+        </div>
+        <div style="display:flex;gap:8px" data-noprint>
+          <button class="btn btn--pequeno" type="button" id="ligarTodos">Ligar todos</button>
+          <button class="btn btn--pequeno" type="button" id="desligarTodos">Desligar todos</button>
+        </div>
+      </div>
+      <div class="alertas" id="listaAlertas"></div>
+    </section>
+
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="2">← Motor</button>
+      <button class="btn" type="button" data-ir="4">Ranking →</button>
+    </div>
+  </div>
+
+  <!-- ================= ETAPA 4 — RANKING ================= -->
+  <div id="pagina4" class="folha" hidden>
+
+    <section class="cartao secao">
+      <div class="titulo titulo--grande">RANKING DE MOTORISTAS</div>
+      <div class="explica-regra">
+        <p>Cada regra funciona assim: quando o evento acontecer <b>X vezes</b>, o motorista
+          <b>perde Y pontos</b>.</p>
+        <p class="explica-regra__exemplo">Exemplo: <b>Faixa amarela</b> · 3 vezes · perde 2 pontos.</p>
+        <p>Ligue as regras que valem para a sua frota. As regras valem para todos os motoristas,
+          de todos os grupos — é assim que o ranking compara um com o outro.</p>
+      </div>
+    </section>
+
+    <div id="listasRegras" class="folha"></div>
+
+    <section class="cartao secao">
+      <div class="titulo">OBSERVAÇÕES</div>
+      <textarea id="observacoes" rows="3" placeholder="Algo mais que devemos saber?"></textarea>
+    </section>
+
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="3">← Condução e alertas</button>
+      <button class="btn" type="button" id="abrirResumo">Revisar e enviar</button>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<!-- ================= RESUMO ================= -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="Resumo da configuração">
+  <div class="modal__caixa">
+    <div class="modal__topo">
+      <b>Resumo da configuração</b>
+      <button class="fechar" type="button" id="fecharResumo" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__corpo" id="corpoResumo"></div>
+    <div class="modal__pe">
+      <span class="estado" id="estadoEnvio"></span>
+      <button class="btn btn--fantasma" type="button" id="copiarResumo">Copiar resumo</button>
+      <button class="btn" type="button" id="enviar">Enviar respostas</button>
+    </div>
+  </div>
+</div>
+
+<!-- defer preserva a ordem: catálogo e matemática primeiro, depois os
+     controles, a frota, as regras, o resumo e o estado. Por último o
+     acesso, que é quem abre o formulário depois de validar o código. -->
+<script src="assets/catalogo.js" defer></script>
+<script src="assets/campos.js" defer></script>
+<script src="assets/frota.js" defer></script>
+<script src="assets/regras.js" defer></script>
+<script src="assets/resumo.js" defer></script>
+<script src="assets/app.js" defer></script>
+<script src="assets/acesso.js" defer></script>
+</body>
+</html>
