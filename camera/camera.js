@@ -296,7 +296,7 @@ function mostraPagina(n) {
 }
 
 /* ==================================================================== *
- * RESUMO — o que mudou é o que difere do valor atual do equipamento.
+ * RESUMO — o que mudou é o que difere do recomendado pela CORPVS.
  * ==================================================================== */
 function alterou(f) {
   var v = S.v[f.id];
@@ -351,8 +351,8 @@ function montaResumo() {
 
 function placarTexto() {
   var n = visiveis().filter(alterou).length + (S.alarmes ? 0 : 1);
-  return n ? n + (n > 1 ? ' itens alterados' : ' item alterado') + ' em relação ao equipamento hoje'
-    : 'nenhum item alterado — fica como está no equipamento';
+  return n ? n + (n > 1 ? ' itens alterados' : ' item alterado') + ' em relação ao recomendado pela CORPVS'
+    : 'nenhum item alterado — configuração recomendada pela CORPVS';
 }
 
 function resumoTexto() {
