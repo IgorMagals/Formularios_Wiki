@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f4396">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Formulário de configuração da câmera CORPVS.">
+<title>CORPVS Câmera — Formulário de Configuração</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="../assets/estilo.css">
+<style>
+  /* Só o que a câmera tem e a telemetria não: a ficha de cada função. */
+  .funcao { gap: var(--espaco-m); }
+  .funcao__campos { display: grid; gap: var(--espaco-m); grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 560px) { .funcao__campos { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); } }
+  .funcao__campos .alerta { min-height: 46px; }
+  .modulo { font: 600 13px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--teal); }
+</style>
+</head>
+<body>
+
+<div class="pagina">
+
+  <header class="cartao cabecalho">
+    <div class="cabecalho__texto">
+      <div class="sobretitulo">FORMULÁRIO DE CONFIGURAÇÃO</div>
+      <h1>CORPVS CÂMERA</h1>
+      <div class="cabecalho__linha2" id="tituloCliente">Configuração das câmeras da sua frota</div>
+      <p>Os campos já vêm com os valores atuais do equipamento — altere só o que quiser. Suas respostas ficam salvas neste navegador enquanto você preenche.</p>
+    </div>
+    <img class="cabecalho__logo" src="../assets/logo.png" alt="CORPVS" width="1766" height="1713">
+  </header>
+
+  <!-- ================= ACESSO ================= -->
+  <section class="cartao secao acesso" id="telaAcesso">
+    <div class="titulo">CÓDIGO DE ACESSO</div>
+    <p class="subtitulo">Digite o código que a CORPVS enviou para o seu e-mail. Ele vale por 24 horas e abre
+      a configuração das câmeras da sua frota.</p>
+    <form class="acesso__linha" id="formAcesso">
+      <input class="entrada acesso__codigo" type="text" id="codigo" placeholder="XXXX-XXXX"
+             autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="12"
+             aria-label="Código de acesso">
+      <button class="btn" type="submit" id="abrir">Abrir</button>
+    </form>
+    <p class="dica" id="estadoAcesso" aria-live="polite"></p>
+  </section>
+
+  <div id="formulario" class="formulario" hidden>
+
+  <nav class="abas" data-noprint>
+    <button class="aba" type="button" data-ir="1" aria-current="true">
+      <span class="aba__num">1</span>
+      <span class="aba__rot"><b>Identificação</b><span>Responsável · veículos</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="2" aria-current="false">
+      <span class="aba__num">2</span>
+      <span class="aba__rot"><b>Estrada (ADAS)</b><span>Colisão · faixa · distância</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="3" aria-current="false">
+      <span class="aba__num">3</span>
+      <span class="aba__rot"><b>Motorista (DSM)</b><span>Cansaço · celular · cinto · direção</span></span>
+    </button>
+    <button class="aba" type="button" data-ir="4" aria-current="false">
+      <span class="aba__num">4</span>
+      <span class="aba__rot"><b>Gravação</b><span>Microfone · veículo desligado</span></span>
+    </button>
+  </nav>
+
+  <!-- ================= ETAPA 1 — IDENTIFICAÇÃO ================= -->
+  <div id="pagina1" class="folha">
+    <section class="cartao secao">
+      <div class="titulo">IDENTIFICAÇÃO</div>
+      <div class="grade-campos">
+        <div class="campo">
+          <span>Empresa</span>
+          <div class="entrada entrada--fixa" id="nomeCliente"></div>
+        </div>
+        <label class="campo">
+          <span>Responsável</span>
+          <input type="text" id="responsavel" placeholder="Seu nome" autocomplete="name">
+        </label>
+        <label class="campo">
+          <span>E-mail</span>
+          <input type="email" id="email" placeholder="nome@empresa.com.br" autocomplete="email" required>
+          <span class="dica" id="dicaEmail"></span>
+        </label>
+      </div>
+
+      <!-- Campo-armadilha: fora da tela e sem foco por tabulação.
+           Se vier com conteúdo, o envio é descartado do outro lado. -->
+      <div class="armadilha" aria-hidden="true">
+        <label>Não preencha este campo
+          <input type="text" id="armadilha" name="sobrenome_meio" tabindex="-1" autocomplete="off">
+        </label>
+      </div>
+    </section>
+
+    <section class="cartao secao">
+      <div class="cabecalho-bloco cabecalho-bloco--quebra">
+        <div>
+          <div class="titulo">VEÍCULOS</div>
+          <div class="subtitulo">A configuração desta página vale para todos os veículos abaixo.</div>
+        </div>
+        <div class="contador" id="contadorPlacas">—</div>
+      </div>
+      <div class="placas" id="listaPlacas"></div>
+    </section>
+
+    <section class="cartao secao">
+      <div>
+        <div class="titulo">ALARMES NA CABINE</div>
+        <div class="subtitulo">Vale para todas as funções. Ligado, você escolhe função por função nas próximas etapas.</div>
+      </div>
+      <div id="alarmesCabine"></div>
+    </section>
+
+    <div class="rodape-nav rodape-nav--fim" data-noprint>
+      <button class="btn" type="button" data-ir="2">Estrada (ADAS) →</button>
+    </div>
+  </div>
+
+  <!-- ================= ETAPAS 2 a 4 — montadas pelo camera.js ================= -->
+  <div id="pagina2" class="folha" hidden>
+    <div class="folha" data-modulos="ADAS"></div>
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="1">← Identificação</button>
+      <button class="btn" type="button" data-ir="3">Motorista (DSM) →</button>
+    </div>
+  </div>
+
+  <div id="pagina3" class="folha" hidden>
+    <div class="folha" data-modulos="DSM VSD"></div>
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="2">← Estrada (ADAS)</button>
+      <button class="btn" type="button" data-ir="4">Gravação →</button>
+    </div>
+  </div>
+
+  <div id="pagina4" class="folha" hidden>
+    <div class="folha" data-modulos="Gravação"></div>
+    <section class="cartao secao">
+      <div class="titulo">OBSERVAÇÕES</div>
+      <textarea id="observacoes" rows="3" placeholder="Algo mais que devemos saber?"></textarea>
+    </section>
+    <div class="rodape-nav" data-noprint>
+      <button class="btn btn--fantasma" type="button" data-ir="3">← Motorista (DSM)</button>
+      <button class="btn" type="button" id="abrirResumo">Revisar e enviar</button>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<!-- ================= RESUMO ================= -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="Resumo da configuração">
+  <div class="modal__caixa">
+    <div class="modal__topo">
+      <b>Resumo da configuração</b>
+      <button class="fechar" type="button" id="fecharResumo" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__corpo" id="corpoResumo"></div>
+    <div class="modal__pe">
+      <span class="estado" id="estadoEnvio"></span>
+      <button class="btn btn--fantasma" type="button" id="copiarResumo">Copiar resumo</button>
+      <button class="btn" type="button" id="enviar">Enviar respostas</button>
+    </div>
+  </div>
+</div>
+
+<script src="catalogo.js" defer></script>
+<script src="camera.js" defer></script>
+</body>
+</html>
